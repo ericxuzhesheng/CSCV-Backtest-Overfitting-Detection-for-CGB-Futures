@@ -227,12 +227,12 @@ PBO = Probability of Backtest Overfitting，衡量样本内选出的最优策略
 pip install -r requirements.txt
 ```
 
-建议将原始 Excel 放入 `data/raw/`：
+本仓库已在 `data/raw/` 中包含用于复现实证结果的两个原始 Excel：
 
 - `10年国债期货_5min_3年.xlsx`
 - `30年国债期货_5min_2年.xlsx`
 
-如果文件仍在仓库根目录，pipeline 也会临时读取；但原始 Excel 不会提交到 GitHub。
+如果文件仍在仓库根目录，pipeline 也会临时读取；推荐以 `data/raw/` 为规范数据目录。
 
 ### 运行命令
 
@@ -333,7 +333,7 @@ PBO is the Probability of Backtest Overfitting. It measures how often the strate
 pip install -r requirements.txt
 ```
 
-Place raw Excel files in `data/raw/`; root-level fallback is supported for local runs.
+The two raw Excel files used for the published results are included under `data/raw/`; root-level fallback is also supported for local runs.
 
 ### Example Commands
 

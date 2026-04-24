@@ -6,10 +6,12 @@ __pycache__/
 .DS_Store
 *.log
 
-# Raw market data is local-only.
+# Root-level Excel files are local copies; canonical sample data lives in data/raw/.
+*.xlsx
 data/raw/*
 !data/raw/.gitkeep
-*.xlsx
+!data/raw/10年国债期货_5min_3年.xlsx
+!data/raw/30年国债期货_5min_2年.xlsx
 
 # Full strategy return matrices are reproducible and too large for normal GitHub.
 results/tables/strategy_returns_*.csv
