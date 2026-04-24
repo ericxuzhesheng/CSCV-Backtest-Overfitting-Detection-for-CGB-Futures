@@ -1,219 +1,215 @@
-# CSCV Backtest Overfitting Report | 国债期货 CSCV 回测过拟合报告
+# CSCV Backtest Overfitting Report | 国债期货 CSCV 回测过拟合检验报告
 
 ## 中文报告
 
-### CSCV 方法
+### 1. CSCV 方法
 
-CSCV 全称为 Combinatorially Symmetric Cross-Validation，组合对称交叉验证。本项目参考 Bailey, Borwein, López de Prado and Zhu 关于 *The Probability of Backtest Overfitting* 的研究，将其用于国债期货 T / TL 5 分钟策略参数检验，评估不同参数组合是否只是样本内拟合优异，而缺乏样本外稳健性。
+CSCV 是标准组合对称交叉验证方法，用于检测参数搜索导致的回测过拟合。仓库保留了原有 CSCV/PBO 功能，PBO 仍定义为 OOS percentile 低于 0.5 的 split 占比。
 
+### 2. Dynamic Parameter Selection Audit 方法
 
-将样本划分为 $S$ 个连续子样本：
+Dynamic Parameter Selection Audit 是通用 walk-forward 参数选择稳健性诊断。它在训练窗口内按 `selection_metric` 选参，在下一段 OOS 窗口中检验真实表现，并输出 `selected_oos_rank`、`selected_oos_percentile`、`dynamic_selection_failure_rate`、`score_oos_corr`、`score_oos_rank_corr` 和 `parameter_stability`。
 
-$$
-D = \{D_1, D_2, \ldots, D_S\}
-$$
+### 3. 二者区别
 
-每次选择一半子样本作为样本内：
+- CSCV/PBO 关注静态参数搜索的过拟合风险。
+- Dynamic Audit 关注滚动训练窗口中的动态选参稳定性。
+- `dynamic_selection_failure_rate` 不是标准 PBO。
+- Dynamic Audit 借鉴 walk-forward validation，但不替代 CSCV。
 
-$$
-D_{IS}^{(k)} \subset D, \quad D_{OOS}^{(k)} = D \setminus D_{IS}^{(k)}
-$$
+### 4. 数据说明
 
-在样本内选择最优策略：
+默认评估样本从 `2024-01-01` 开始，原始数据应放在 `data/raw/`。支持 T 与 TL 两个合约。若数据不存在，pipeline 会直接报缺失，不会伪造结果。
 
-$$
-j^* = \arg\max_j Sharpe_{IS}^{(k)}(j)
-$$
+### 5. 策略收益矩阵
 
-观察该策略在样本外的百分位排名：
+策略收益矩阵的行是 5 分钟 bar，列是参数组合。信号在 bar `t` 形成，收益通过 `position.shift(1)` 在 bar `t+1` 实现，避免 future leakage。
 
-$$
-Rank_{OOS}^{(k)}(j^*)
-$$
+### 6. IS/OOS split 设计
 
-本项目中 rank 方向为 $0 =$ 最差，$1 =$ 最好。如果样本外排名落入较差一半，则记为过拟合事件：
+CSCV 采用对称 block 切分。Dynamic Audit 采用滚动训练窗口和紧随其后的 OOS 测试窗口，训练集与测试集不重叠，OOS 数据不参与训练窗口选参。
 
-$$
-I_k = \mathbb{1}(Rank_{OOS}^{(k)} < 0.5)
-$$
+### 7. PBO 计算
 
-PBO 定义为：
+PBO 仅对应标准 CSCV/PBO：在每个 CSCV split 内，先用 IS 选出最优策略，再看该策略在 OOS 中是否落入后 50%。
 
-$$
-PBO = \frac{1}{K} \sum_{k=1}^{K} I_k
-$$
+### 8. dynamic_selection_failure_rate 计算
 
-Rank logit 使用：
+Dynamic Audit 在每个 walk-forward 窗口内记录被选策略的 OOS percentile。若 percentile `< 0.5`，则该窗口记为 failure。`dynamic_selection_failure_rate` 为 failure 窗口占比。
 
-$$
-\log\left(\frac{Rank_{OOS}^{(k)}}{1 - Rank_{OOS}^{(k)}}\right)
-$$
+### 9. T / TL 结果
 
-
-### 数据说明
-
-原始数据来自本地 Excel 文件，标准字段为 `datetime/open/high/low/close/volume/open_interest`。pipeline 自动识别 sheet、表头、中文和英文字段，删除重复时间戳并按时间升序排序。默认评估样本从 `2024-01-01` 开始。
-
-### 策略收益矩阵
-
-策略保留原始牛熊指标逻辑：用成交量/持仓量换手与收益波动率构造 fast/slow 指标。当 fast 高于 slow 时做多，低于 slow 时做空，并保留连续亏损冷却机制。每个参数组合对应一列收益；收益使用上一根 bar 的仓位计算，避免未来函数。
-
-### IS/OOS split 设计与 PBO 计算
-
-收益矩阵被切为 8 个连续 blocks，每次选择 4 个 blocks 为样本内，剩余 4 个为样本外。样本内按 Sharpe ratio 选出最优参数，并记录其样本外 Sharpe、样本外百分位排名和 rank logit。PBO 为样本外排名低于 0.5 的 split 占比。
-
-### T/TL 结果
+#### CSCV / PBO
 
 | contract | sample_start | sample_end | rows | n_strategies | n_combinations | PBO | median_oos_rank | mean_is_performance | mean_oos_performance | best_overall_strategy | best_oos_strategy |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | T | 2024-01-02 09:35:00 | 2026-04-24 15:15:00 | 28352 | 9123 | 70 | 0.6429 | 0.3971 | 2.7149 | -0.3999 | nf_0031_ns_0107 | nf_0031_ns_0107 |
 | TL | 2024-01-02 09:35:00 | 2026-04-25 11:30:00 | 28451 | 9123 | 70 | 0.5000 | 0.5106 | 2.7003 | 0.0920 | nf_0047_ns_1630 | nf_0047_ns_1630 |
 
-### 图表
+#### Dynamic Parameter Selection Audit
+
+| contract | n_windows | selection_metric | dynamic_selection_failure_rate | mean_selected_oos_return | mean_selected_oos_sharpe | mean_selected_oos_percentile | score_oos_corr | score_oos_rank_corr | parameter_switch_count | most_frequent_strategy | parameter_entropy | average_holding_windows |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| T | 456 | sharpe | 0.5351 | -0.0006 | -1.0419 | 0.4588 | -0.0065 | -0.0029 | 157 | nf_0090_ns_0107 | 4.0459 | 2.8861 |
+| TL | 457 | sharpe | 0.4748 | 0.0018 | 1.0953 | 0.5387 | 0.0522 | 0.0298 | 127 | nf_0026_ns_0160 | 3.6166 | 3.5703 |
+
+### 10. 图表
 
 #### T
 
-![T PBO histogram](figures/pbo_histogram_T.png)
+![T pbo_histogram](figures/pbo_histogram_T.png)
 
-![T Rank logit](figures/rank_logit_T.png)
+![T rank_logit](figures/rank_logit_T.png)
 
-![T IS vs OOS](figures/is_vs_oos_T.png)
+![T is_vs_oos](figures/is_vs_oos_T.png)
 
-![T OOS rank distribution](figures/oos_rank_distribution_T.png)
+![T oos_rank_distribution](figures/oos_rank_distribution_T.png)
+
+![T selection_score_vs_oos](figures/selection_score_vs_oos_T.png)
+
+![T selected_oos_rank](figures/selected_oos_rank_T.png)
+
+![T parameter_stability](figures/parameter_stability_T.png)
+
+![T dynamic_failure_rate](figures/dynamic_failure_rate_T.png)
 
 #### TL
 
-![TL PBO histogram](figures/pbo_histogram_TL.png)
+![TL pbo_histogram](figures/pbo_histogram_TL.png)
 
-![TL Rank logit](figures/rank_logit_TL.png)
+![TL rank_logit](figures/rank_logit_TL.png)
 
-![TL IS vs OOS](figures/is_vs_oos_TL.png)
+![TL is_vs_oos](figures/is_vs_oos_TL.png)
 
-![TL OOS rank distribution](figures/oos_rank_distribution_TL.png)
+![TL oos_rank_distribution](figures/oos_rank_distribution_TL.png)
 
-### 局限性
+![TL selection_score_vs_oos](figures/selection_score_vs_oos_TL.png)
 
-结果未显式纳入交易成本、滑点、合约换月细节和实盘流动性冲击。CSCV 衡量的是参数搜索中的样本内过拟合风险，不保证未来收益。
+![TL selected_oos_rank](figures/selected_oos_rank_TL.png)
 
-### References
+![TL parameter_stability](figures/parameter_stability_TL.png)
 
-- Bailey, D. H., Borwein, J. M., López de Prado, M., & Zhu, Q. J. (2014). *The Probability of Backtest Overfitting*. Journal of Computational Finance.
-- Bailey, D. H., & López de Prado, M. (2012/2014). *The Deflated Sharpe Ratio: Correcting for Selection Bias, Backtest Overfitting and Non-Normality*.
-- López de Prado, M. (2018). *Advances in Financial Machine Learning*. Wiley.
-- 华泰证券. (2019-06-17). *华泰人工智能系列之二十二：基于CSCV框架的回测过拟合概率*.
-- 华泰证券. (2019-09-27). *华泰金工量化择时系列：波动率与换手率构造牛熊指标*.
+![TL dynamic_failure_rate](figures/dynamic_failure_rate_TL.png)
 
-### 许可证
+### 11. 局限性
 
-本项目采用 MIT License，详见 `../LICENSE`。
+结果未完整建模交易成本、滑点、换月与实盘流动性。Dynamic Audit 是诊断工具，不应把 OOS 结果反向用于训练窗口选参。
 
-### Disclaimer
+### 12. References
 
-本项目用于个人研究与工程化复现，不代表原作者或任何机构观点，不构成投资建议。
+1. Bailey, D. H., Borwein, J. M., López de Prado, M., & Zhu, Q. J. (2014). The Probability of Backtest Overfitting. Journal of Computational Finance.
+2. Bailey, D. H., & López de Prado, M. The Deflated Sharpe Ratio: Correcting for Selection Bias, Backtest Overfitting and Non-Normality.
+3. López de Prado, M. (2018). Advances in Financial Machine Learning. Wiley.
+
+The Dynamic Parameter Selection Audit in this repository borrows the walk-forward validation idea to complement CSCV/PBO. It is not standard PBO and does not replace CSCV.
+
+### 13. Disclaimer
+
+本仓库仅用于研究与工程复现，不构成投资建议。
 
 ## English Report
 
-### CSCV Method
+### 1. CSCV Method
 
-CSCV means Combinatorially Symmetric Cross-Validation. This report applies CSCV/PBO to 5-minute CGB futures strategy parameter validation, following the backtest-overfitting literature by Bailey, Borwein, López de Prado and Zhu.
+CSCV is the standard combinatorially symmetric cross-validation method for backtest-overfitting detection. The repository preserves the original CSCV/PBO functionality. PBO remains the share of CSCV splits where the selected strategy ranks below the 50th OOS percentile.
 
+### 2. Dynamic Parameter Selection Audit
 
-Partition the full sample into $S$ chronological subsamples:
+The Dynamic Parameter Selection Audit is a generic walk-forward parameter-selection diagnostic. It selects parameters in the training window, evaluates the selected strategy in the next OOS window, and reports `selected_oos_rank`, `selected_oos_percentile`, `dynamic_selection_failure_rate`, score-vs-OOS correlations, and parameter stability.
 
-$$
-D = \{D_1, D_2, \ldots, D_S\}
-$$
+### 3. Difference between the Two
 
-For each split, choose half of the subsamples as in-sample:
+- CSCV/PBO measures static parameter-search overfitting risk.
+- Dynamic Audit measures the stability of rolling parameter selection.
+- `dynamic_selection_failure_rate` is not standard PBO.
+- Dynamic Audit complements CSCV and does not replace it.
 
-$$
-D_{IS}^{(k)} \subset D, \quad D_{OOS}^{(k)} = D \setminus D_{IS}^{(k)}
-$$
+### 4. Data
 
-Select the best strategy in-sample:
+The default evaluation sample starts on `2024-01-01`. Raw files should be placed in `data/raw/`. The framework supports T and TL. Missing data stops the pipeline instead of generating fabricated results.
 
-$$
-j^* = \arg\max_j Sharpe_{IS}^{(k)}(j)
-$$
+### 5. Strategy Return Matrix
 
-Observe that selected strategy's out-of-sample percentile rank:
+Rows are 5-minute bars and columns are strategy or parameter IDs. Signals are formed on bar `t`; returns are earned on bar `t+1` via `position.shift(1)`, which is the leakage control.
 
-$$
-Rank_{OOS}^{(k)}(j^*)
-$$
+### 6. IS/OOS Split Design
 
-In this project, rank direction is $0 =$ worst and $1 =$ best. If the selected strategy falls into the worse half out-of-sample, it is counted as an overfitting event:
+CSCV uses symmetric block splits. Dynamic Audit uses rolling training windows followed by the next OOS test window. OOS data is never used for parameter selection inside the training window.
 
-$$
-I_k = \mathbb{1}(Rank_{OOS}^{(k)} < 0.5)
-$$
+### 7. PBO Calculation
 
-PBO is defined as:
+PBO refers only to the standard CSCV module: pick the in-sample winner and test whether its OOS percentile rank falls into the worse half.
 
-$$
-PBO = \frac{1}{K} \sum_{k=1}^{K} I_k
-$$
+### 8. dynamic_selection_failure_rate Calculation
 
-Rank logit is:
+Dynamic Audit records the selected strategy's OOS percentile in each walk-forward window. A window is a failure when percentile `< 0.5`. The failure rate is the share of such windows.
 
-$$
-\log\left(\frac{Rank_{OOS}^{(k)}}{1 - Rank_{OOS}^{(k)}}\right)
-$$
+### 9. T / TL Results
 
-
-### Data
-
-The pipeline standardizes Excel inputs into `datetime/open/high/low/close/volume/open_interest`, auto-detects sheet/header layout, removes duplicated timestamps, and sorts observations chronologically. The default evaluation sample starts from `2024-01-01`.
-
-### Strategy Return Matrix
-
-The original bull/bear indicator strategy is retained. Fast and slow indicators are built from turnover and return volatility; the strategy goes long when fast exceeds slow and short otherwise, with the original consecutive-loss cooldown control. Positions are shifted by one bar before return calculation.
-
-### IS/OOS Splits and PBO
-
-The return matrix is split into 8 chronological blocks. Each CSCV split uses 4 blocks as in-sample and 4 blocks as out-of-sample. The in-sample winner is selected by Sharpe ratio and then ranked out-of-sample. PBO is the fraction of splits where the selected strategy ranks in the worse half out-of-sample.
-
-### T/TL Results
+#### CSCV / PBO
 
 | contract | sample_start | sample_end | rows | n_strategies | n_combinations | PBO | median_oos_rank | mean_is_performance | mean_oos_performance | best_overall_strategy | best_oos_strategy |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | T | 2024-01-02 09:35:00 | 2026-04-24 15:15:00 | 28352 | 9123 | 70 | 0.6429 | 0.3971 | 2.7149 | -0.3999 | nf_0031_ns_0107 | nf_0031_ns_0107 |
 | TL | 2024-01-02 09:35:00 | 2026-04-25 11:30:00 | 28451 | 9123 | 70 | 0.5000 | 0.5106 | 2.7003 | 0.0920 | nf_0047_ns_1630 | nf_0047_ns_1630 |
 
-### Figures
+#### Dynamic Parameter Selection Audit
+
+| contract | n_windows | selection_metric | dynamic_selection_failure_rate | mean_selected_oos_return | mean_selected_oos_sharpe | mean_selected_oos_percentile | score_oos_corr | score_oos_rank_corr | parameter_switch_count | most_frequent_strategy | parameter_entropy | average_holding_windows |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| T | 456 | sharpe | 0.5351 | -0.0006 | -1.0419 | 0.4588 | -0.0065 | -0.0029 | 157 | nf_0090_ns_0107 | 4.0459 | 2.8861 |
+| TL | 457 | sharpe | 0.4748 | 0.0018 | 1.0953 | 0.5387 | 0.0522 | 0.0298 | 127 | nf_0026_ns_0160 | 3.6166 | 3.5703 |
+
+### 10. Figures
 
 #### T
 
-![T PBO histogram](figures/pbo_histogram_T.png)
+![T pbo_histogram](figures/pbo_histogram_T.png)
 
-![T Rank logit](figures/rank_logit_T.png)
+![T rank_logit](figures/rank_logit_T.png)
 
-![T IS vs OOS](figures/is_vs_oos_T.png)
+![T is_vs_oos](figures/is_vs_oos_T.png)
 
-![T OOS rank distribution](figures/oos_rank_distribution_T.png)
+![T oos_rank_distribution](figures/oos_rank_distribution_T.png)
+
+![T selection_score_vs_oos](figures/selection_score_vs_oos_T.png)
+
+![T selected_oos_rank](figures/selected_oos_rank_T.png)
+
+![T parameter_stability](figures/parameter_stability_T.png)
+
+![T dynamic_failure_rate](figures/dynamic_failure_rate_T.png)
 
 #### TL
 
-![TL PBO histogram](figures/pbo_histogram_TL.png)
+![TL pbo_histogram](figures/pbo_histogram_TL.png)
 
-![TL Rank logit](figures/rank_logit_TL.png)
+![TL rank_logit](figures/rank_logit_TL.png)
 
-![TL IS vs OOS](figures/is_vs_oos_TL.png)
+![TL is_vs_oos](figures/is_vs_oos_TL.png)
 
-![TL OOS rank distribution](figures/oos_rank_distribution_TL.png)
+![TL oos_rank_distribution](figures/oos_rank_distribution_TL.png)
 
-### References
+![TL selection_score_vs_oos](figures/selection_score_vs_oos_TL.png)
 
-- Bailey, D. H., Borwein, J. M., López de Prado, M., & Zhu, Q. J. (2014). *The Probability of Backtest Overfitting*. Journal of Computational Finance.
-- Bailey, D. H., & López de Prado, M. (2012/2014). *The Deflated Sharpe Ratio: Correcting for Selection Bias, Backtest Overfitting and Non-Normality*.
-- López de Prado, M. (2018). *Advances in Financial Machine Learning*. Wiley.
-- Huatai Securities. (2019-06-17). *Huatai Artificial Intelligence Series No. 22: Probability of Backtest Overfitting Based on the CSCV Framework*. Chinese research report.
-- Huatai Securities. (2019-09-27). *Huatai Quantitative Market Timing Series: Constructing Bull-Bear Indicators with Volatility and Turnover*. Chinese research report.
+![TL selected_oos_rank](figures/selected_oos_rank_TL.png)
 
-### Limitations and Disclaimer
+![TL parameter_stability](figures/parameter_stability_TL.png)
 
-The results do not fully model transaction costs, slippage, contract roll mechanics, or live execution constraints. CSCV measures overfitting risk in the research process; it does not guarantee future profitability.
+![TL dynamic_failure_rate](figures/dynamic_failure_rate_TL.png)
 
-### License
+### 11. Limitations
 
-This project is released under the MIT License. See `../LICENSE`.
+The outputs do not fully model transaction costs, slippage, rolling mechanics, or live-execution constraints. Dynamic Audit is diagnostic only and should not be fed back into the training window as an optimization loop.
+
+### 12. References
+
+1. Bailey, D. H., Borwein, J. M., López de Prado, M., & Zhu, Q. J. (2014). The Probability of Backtest Overfitting. Journal of Computational Finance.
+2. Bailey, D. H., & López de Prado, M. The Deflated Sharpe Ratio: Correcting for Selection Bias, Backtest Overfitting and Non-Normality.
+3. López de Prado, M. (2018). Advances in Financial Machine Learning. Wiley.
+
+The Dynamic Parameter Selection Audit in this repository borrows the walk-forward validation idea to complement CSCV/PBO. It is not standard PBO and does not replace CSCV.
+
+### 13. Disclaimer
+
+This repository is for research and engineering reproduction only and does not constitute investment advice.

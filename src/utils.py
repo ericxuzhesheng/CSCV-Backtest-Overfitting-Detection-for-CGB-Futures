@@ -88,6 +88,10 @@ def existing_figure_links(contract: str) -> Iterable[tuple[str, str]]:
         ("Rank logit", f"rank_logit_{contract}.png"),
         ("IS vs OOS", f"is_vs_oos_{contract}.png"),
         ("OOS rank distribution", f"oos_rank_distribution_{contract}.png"),
+        ("Selection score vs OOS", f"selection_score_vs_oos_{contract}.png"),
+        ("Selected OOS rank", f"selected_oos_rank_{contract}.png"),
+        ("Parameter stability", f"parameter_stability_{contract}.png"),
+        ("Dynamic failure rate", f"dynamic_failure_rate_{contract}.png"),
     ]
     for label, name in figure_names:
         if (FIGURES_DIR / name).exists():

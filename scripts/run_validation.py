@@ -18,6 +18,13 @@ REQUIRED_TABLES = [
     "cscv_summary_T.csv",
     "cscv_summary_TL.csv",
     "cscv_summary_all.csv",
+    "dynamic_audit_splits_T.csv",
+    "dynamic_audit_splits_TL.csv",
+    "dynamic_audit_summary_T.csv",
+    "dynamic_audit_summary_TL.csv",
+    "dynamic_audit_summary_all.csv",
+    "parameter_stability_T.csv",
+    "parameter_stability_TL.csv",
 ]
 
 REQUIRED_FIGURES = [
@@ -29,6 +36,14 @@ REQUIRED_FIGURES = [
     "rank_logit_TL.png",
     "is_vs_oos_TL.png",
     "oos_rank_distribution_TL.png",
+    "selection_score_vs_oos_T.png",
+    "selected_oos_rank_T.png",
+    "parameter_stability_T.png",
+    "dynamic_failure_rate_T.png",
+    "selection_score_vs_oos_TL.png",
+    "selected_oos_rank_TL.png",
+    "parameter_stability_TL.png",
+    "dynamic_failure_rate_TL.png",
 ]
 
 
@@ -51,7 +66,7 @@ def main() -> None:
             print(f"  - {path}")
         raise SystemExit(1)
 
-    print("Validation passed: required CSCV tables, figures, README, and report exist.")
+    print("Validation passed: required CSCV and dynamic audit tables, figures, README, and report exist.")
 
 
 if __name__ == "__main__":

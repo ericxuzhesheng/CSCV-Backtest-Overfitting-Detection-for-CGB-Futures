@@ -24,25 +24,24 @@ def _norm(value: object) -> str:
 
 
 def _standardize_columns(columns: Iterable[object]) -> Dict[object, str]:
+    alias_map = {target: {_norm(alias) for alias in aliases} for target, aliases in FIELD_ALIASES.items()}
     mapping: Dict[object, str] = {}
     for col in columns:
         normed = _norm(col)
-        for target, aliases in FIELD_ALIASES.items():
-            if normed in {_norm(alias) for alias in aliases}:
+        for target, aliases in alias_map.items():
+            if normed in aliases:
                 mapping[col] = target
                 break
     return mapping
 
 
 def _find_header_row(raw: pd.DataFrame, search_rows: int = 50) -> Optional[int]:
-    required = {"time", "open", "high", "low", "close"}
-    n = min(search_rows, len(raw))
-    for i in range(n):
-        row = {_norm(value) for value in raw.iloc[i].tolist()}
-        if required.issubset(row) or {"datetime", "open", "high", "low", "close"}.issubset(row):
-            return i
-        if {"时间", "开盘", "最高", "最低", "收盘"}.issubset(row):
-            return i
+    required_en = {"datetime", "open", "high", "low", "close"}
+    required_cn = {"时间", "开盘", "最高", "最低", "收盘"}
+    for row_idx in range(min(search_rows, len(raw))):
+        row_values = {_norm(value) for value in raw.iloc[row_idx].tolist()}
+        if required_en.issubset(row_values) or required_cn.issubset(row_values):
+            return row_idx
     return None
 
 
@@ -55,7 +54,7 @@ def _load_sheet(path: Path, sheet_name: str) -> pd.DataFrame:
     if header_row is None:
         data = pd.read_excel(path, sheet_name=sheet_name)
     else:
-        header = ["" if pd.isna(x) else str(x).strip() for x in raw.iloc[header_row].tolist()]
+        header = ["" if pd.isna(value) else str(value).strip() for value in raw.iloc[header_row].tolist()]
         data = raw.iloc[header_row + 1 :].copy()
         data.columns = header
 
@@ -71,16 +70,16 @@ def _load_sheet(path: Path, sheet_name: str) -> pd.DataFrame:
 
     data["datetime"] = pd.to_datetime(data["datetime"], errors="coerce")
     data = data.dropna(subset=["datetime"]).copy()
-    for col in ["open", "high", "low", "close", "volume", "open_interest"]:
-        if col in data.columns:
-            data[col] = pd.to_numeric(data[col], errors="coerce")
+    for column in ["open", "high", "low", "close", "volume", "open_interest"]:
+        if column in data.columns:
+            data[column] = pd.to_numeric(data[column], errors="coerce")
 
     data = data.dropna(subset=["close"])
     data["volume"] = data["volume"].fillna(0.0)
     if "open_interest" in data.columns:
         data["open_interest"] = data["open_interest"].replace(0, pd.NA).ffill()
 
-    ordered = [c for c in ["open", "high", "low", "close", "volume", "open_interest"] if c in data.columns]
+    ordered = [col for col in ["open", "high", "low", "close", "volume", "open_interest"] if col in data.columns]
     out = data.set_index("datetime")[ordered]
     out = out[~out.index.duplicated(keep="last")].sort_index()
     if out.empty:
@@ -91,11 +90,11 @@ def _load_sheet(path: Path, sheet_name: str) -> pd.DataFrame:
 def load_price_data(path: Path) -> pd.DataFrame:
     excel = pd.ExcelFile(path)
     errors = []
-    for sheet in excel.sheet_names:
+    for sheet_name in excel.sheet_names:
         try:
-            return _load_sheet(path, sheet)
-        except Exception as exc:  # pragma: no cover - included in error message.
-            errors.append(f"{sheet}: {exc}")
+            return _load_sheet(path, sheet_name)
+        except Exception as exc:  # pragma: no cover
+            errors.append(f"{sheet_name}: {exc}")
     raise ValueError(f"Could not load any sheet from {path}. Errors: {' | '.join(errors)}")
 
 

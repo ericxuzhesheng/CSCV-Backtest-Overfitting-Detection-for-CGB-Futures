@@ -1,0 +1,2 @@
+﻿contract,parameter_switch_count,most_frequent_strategy,most_frequent_strategy_ratio,top_5_strategy_frequency,parameter_entropy,average_holding_windows
+T,157,nf_0090_ns_0107,0.09210526315789473,nf_0090_ns_0107:42 (9.21%); nf_0042_ns_0134:24 (5.26%); nf_0315_ns_0321:21 (4.61%); nf_0031_ns_0107:19 (4.17%); nf_0031_ns_0134:18 (3.95%),4.045924267095147,2.8860759493670884

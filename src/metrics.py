@@ -63,6 +63,14 @@ def calmar_ratio(returns: pd.Series | np.ndarray, periods_per_year: int = PERIOD
     return float(ann / abs(mdd))
 
 
+def win_rate(returns: pd.Series | np.ndarray) -> float:
+    arr = np.asarray(returns, dtype=float)
+    arr = arr[np.isfinite(arr)]
+    if arr.size == 0:
+        return np.nan
+    return float(np.mean(arr > 0))
+
+
 def performance_summary(returns: pd.Series | np.ndarray, periods_per_year: int = PERIODS_PER_YEAR) -> dict:
     return {
         "cumulative_return": cumulative_return(returns),
@@ -71,7 +79,27 @@ def performance_summary(returns: pd.Series | np.ndarray, periods_per_year: int =
         "sharpe": sharpe_ratio(returns, periods_per_year),
         "max_drawdown": max_drawdown(returns),
         "calmar": calmar_ratio(returns, periods_per_year),
+        "win_rate": win_rate(returns),
     }
+
+
+def evaluate_metric(
+    returns: pd.Series | np.ndarray,
+    metric: str,
+    periods_per_year: int = PERIODS_PER_YEAR,
+) -> float:
+    metric_key = metric.lower()
+    if metric_key == "sharpe":
+        return sharpe_ratio(returns, periods_per_year)
+    if metric_key == "annualized_return":
+        return annualized_return(returns, periods_per_year)
+    if metric_key == "calmar":
+        return calmar_ratio(returns, periods_per_year)
+    if metric_key == "cumulative_return":
+        return cumulative_return(returns)
+    if metric_key == "win_rate":
+        return win_rate(returns)
+    raise ValueError(f"Unsupported metric: {metric}")
 
 
 def metric_from_stats(sum_returns: np.ndarray, sum_squares: np.ndarray, count: int, metric: str) -> np.ndarray:
