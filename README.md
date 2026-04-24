@@ -161,8 +161,14 @@ python cscv_t_strategy.py --contract ALL --n-splits 8
 - Bailey, D. H., Borwein, J. M., López de Prado, M., & Zhu, Q. J. (2014). *The Probability of Backtest Overfitting*. Journal of Computational Finance.
 - Bailey, D. H., & López de Prado, M. (2012/2014). *The Deflated Sharpe Ratio: Correcting for Selection Bias, Backtest Overfitting and Non-Normality*.
 - López de Prado, M. (2018). *Advances in Financial Machine Learning*. Wiley.
+- 华泰证券. (2019-06-17). *华泰人工智能系列之二十二：基于CSCV框架的回测过拟合概率*.
+- 华泰证券. (2019-09-27). *华泰金工量化择时系列：波动率与换手率构造牛熊指标*.
 
 本项目参考 CSCV 和 PBO 的经典研究，用于检测量化策略在参数搜索和多策略筛选过程中的样本内过拟合风险。代码实现是个人研究与工程化复现，不代表原作者或任何机构观点。
+
+### 许可证
+
+本项目采用 MIT License，详见 `LICENSE`。
 
 ### 局限性与免责声明
 
@@ -306,6 +312,12 @@ Outputs are written under `results/tables/`, `results/figures/`, and `results/re
 - Bailey, D. H., Borwein, J. M., López de Prado, M., & Zhu, Q. J. (2014). *The Probability of Backtest Overfitting*. Journal of Computational Finance.
 - Bailey, D. H., & López de Prado, M. (2012/2014). *The Deflated Sharpe Ratio: Correcting for Selection Bias, Backtest Overfitting and Non-Normality*.
 - López de Prado, M. (2018). *Advances in Financial Machine Learning*. Wiley.
+- Huatai Securities. (2019-06-17). *Huatai Artificial Intelligence Series No. 22: Probability of Backtest Overfitting Based on the CSCV Framework*. Chinese research report.
+- Huatai Securities. (2019-09-27). *Huatai Quantitative Market Timing Series: Constructing Bull-Bear Indicators with Volatility and Turnover*. Chinese research report.
+
+### License
+
+This project is released under the MIT License. See `LICENSE`.
 
 ### Limitations and Disclaimer
 

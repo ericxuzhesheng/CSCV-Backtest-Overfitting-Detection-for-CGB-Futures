@@ -100,6 +100,12 @@ $$
 - Bailey, D. H., Borwein, J. M., López de Prado, M., & Zhu, Q. J. (2014). *The Probability of Backtest Overfitting*. Journal of Computational Finance.
 - Bailey, D. H., & López de Prado, M. (2012/2014). *The Deflated Sharpe Ratio: Correcting for Selection Bias, Backtest Overfitting and Non-Normality*.
 - López de Prado, M. (2018). *Advances in Financial Machine Learning*. Wiley.
+- 华泰证券. (2019-06-17). *华泰人工智能系列之二十二：基于CSCV框架的回测过拟合概率*.
+- 华泰证券. (2019-09-27). *华泰金工量化择时系列：波动率与换手率构造牛熊指标*.
+
+### 许可证
+
+本项目采用 MIT License，详见 `../LICENSE`。
 
 ### Disclaimer
 
@@ -152,6 +158,18 @@ The return matrix is split into 8 chronological blocks. Each CSCV split uses 4 b
 
 ![TL OOS rank distribution](figures/oos_rank_distribution_TL.png)
 
+### References
+
+- Bailey, D. H., Borwein, J. M., López de Prado, M., & Zhu, Q. J. (2014). *The Probability of Backtest Overfitting*. Journal of Computational Finance.
+- Bailey, D. H., & López de Prado, M. (2012/2014). *The Deflated Sharpe Ratio: Correcting for Selection Bias, Backtest Overfitting and Non-Normality*.
+- López de Prado, M. (2018). *Advances in Financial Machine Learning*. Wiley.
+- Huatai Securities. (2019-06-17). *Huatai Artificial Intelligence Series No. 22: Probability of Backtest Overfitting Based on the CSCV Framework*. Chinese research report.
+- Huatai Securities. (2019-09-27). *Huatai Quantitative Market Timing Series: Constructing Bull-Bear Indicators with Volatility and Turnover*. Chinese research report.
+
 ### Limitations and Disclaimer
 
 The results do not fully model transaction costs, slippage, contract roll mechanics, or live execution constraints. CSCV measures overfitting risk in the research process; it does not guarantee future profitability.
+
+### License
+
+This project is released under the MIT License. See `../LICENSE`.
