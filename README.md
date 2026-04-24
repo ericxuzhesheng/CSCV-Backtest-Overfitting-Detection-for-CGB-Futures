@@ -178,7 +178,7 @@ python cscv_t_strategy.py --contract ALL --n-splits 8
 
 ## English
 
-Current language: English | [切换到中文](#zh)
+Current language: English | [Switch to Chinese](#zh)
 
 ---
 
@@ -193,43 +193,43 @@ The default backtest and CSCV evaluation sample starts from `2024-01-01`. Earlie
 CSCV stands for Combinatorially Symmetric Cross-Validation. It is commonly used to detect financial strategy backtest overfitting, with a canonical reference in Bailey, Borwein, López de Prado and Zhu's research on *The Probability of Backtest Overfitting*. The method partitions the full sample into chronological blocks, enumerates symmetric in-sample/out-of-sample combinations, selects the best strategy in-sample, and evaluates where that selected strategy ranks out-of-sample.
 
 
-将样本划分为 $S$ 个连续子样本：
+Partition the full sample into $S$ chronological subsamples:
 
 $$
 D = \{D_1, D_2, \ldots, D_S\}
 $$
 
-每次选择一半子样本作为样本内：
+For each split, choose half of the subsamples as in-sample:
 
 $$
 D_{IS}^{(k)} \subset D, \quad D_{OOS}^{(k)} = D \setminus D_{IS}^{(k)}
 $$
 
-在样本内选择最优策略：
+Select the best strategy in-sample:
 
 $$
 j^* = \arg\max_j Sharpe_{IS}^{(k)}(j)
 $$
 
-观察该策略在样本外的百分位排名：
+Observe that selected strategy's out-of-sample percentile rank:
 
 $$
 Rank_{OOS}^{(k)}(j^*)
 $$
 
-本项目中 rank 方向为 $0 =$ 最差，$1 =$ 最好。如果样本外排名落入较差一半，则记为过拟合事件：
+In this project, rank direction is $0 =$ worst and $1 =$ best. If the selected strategy falls into the worse half out-of-sample, it is counted as an overfitting event:
 
 $$
 I_k = \mathbb{1}(Rank_{OOS}^{(k)} < 0.5)
 $$
 
-PBO 定义为：
+PBO is defined as:
 
 $$
 PBO = \frac{1}{K} \sum_{k=1}^{K} I_k
 $$
 
-Rank logit 使用：
+Rank logit is:
 
 $$
 \log\left(\frac{Rank_{OOS}^{(k)}}{1 - Rank_{OOS}^{(k)}}\right)
