@@ -1,0 +1,2 @@
+﻿n_strategies,n_splits,n_combinations,PBO,median_oos_rank,mean_is_performance,mean_oos_performance,degradation_ratio,best_overall_strategy,best_oos_strategy,periods_per_year,contract,sample_start,sample_end,rows,performance_metric
+9123,8,70,0.6428571428571429,0.39706204779653587,2.714940690431456,-0.3998966086738476,-0.14729478624827577,nf_0031_ns_0107,nf_0031_ns_0107,13608,T,2024-01-02 09:35:00,2026-04-24 15:15:00,28352,sharpe

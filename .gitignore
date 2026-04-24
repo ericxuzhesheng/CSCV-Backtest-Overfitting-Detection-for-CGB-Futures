@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+.env
+.DS_Store
+*.log
+
+# Raw market data is local-only.
+data/raw/*
+!data/raw/.gitkeep
+*.xlsx
+
+# Full strategy return matrices are reproducible and too large for normal GitHub.
+results/tables/strategy_returns_*.csv
