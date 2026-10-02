@@ -1,0 +1,8 @@
+{
+  "static_blocks": 8,
+  "annualization": 252,
+  "train_rows": 120,
+  "test_rows": 20,
+  "step_rows": 20,
+  "overlapping_test_windows": false
+}

@@ -25,17 +25,19 @@ def _aggregate_metric(
     sums: np.ndarray,
     sumsq: np.ndarray,
     metric: str,
+    periods_per_year: int = PERIODS_PER_YEAR,
 ) -> np.ndarray:
     total_count = int(counts[list(block_ids)].sum())
     total_sum = sums[list(block_ids)].sum(axis=0)
     total_sumsq = sumsq[list(block_ids)].sum(axis=0)
-    return metric_from_stats(total_sum, total_sumsq, total_count, metric)
+    return metric_from_stats(total_sum, total_sumsq, total_count, metric, periods_per_year)
 
 
 def run_cscv(
     returns_matrix: pd.DataFrame,
     n_splits: int = 8,
     performance_metric: str = "sharpe",
+    periods_per_year: int = PERIODS_PER_YEAR,
 ) -> Dict[str, object]:
     if n_splits <= 1 or n_splits % 2 != 0:
         raise ValueError("n_splits must be an even integer greater than 1.")
@@ -56,8 +58,8 @@ def run_cscv(
 
     for split_id, is_blocks in enumerate(combinations(all_blocks, half), start=1):
         oos_blocks = tuple(block for block in all_blocks if block not in is_blocks)
-        is_perf = _aggregate_metric(is_blocks, counts, sums, sumsq, performance_metric)
-        oos_perf = _aggregate_metric(oos_blocks, counts, sums, sumsq, performance_metric)
+        is_perf = _aggregate_metric(is_blocks, counts, sums, sumsq, performance_metric, periods_per_year)
+        oos_perf = _aggregate_metric(oos_blocks, counts, sums, sumsq, performance_metric, periods_per_year)
 
         best_idx = int(np.nanargmax(is_perf))
         selected_oos_perf = float(oos_perf[best_idx])
@@ -69,7 +71,10 @@ def run_cscv(
         clipped = min(max(selected_rank_pct, 1e-6), 1.0 - 1e-6)
         rank_logit = float(np.log(clipped / (1.0 - clipped)))
         best_strategy = str(strategies[best_idx])
-        params = parse_strategy_id(best_strategy)
+        try:
+            params = parse_strategy_id(best_strategy)
+        except (ValueError, IndexError):
+            params = {"N_fast": None, "N_slow": None}
 
         split_rows.append(
             {
@@ -96,6 +101,7 @@ def run_cscv(
         (values.astype(np.float64) ** 2).sum(axis=0),
         len(clean),
         performance_metric,
+        periods_per_year,
     )
     best_overall_idx = int(np.nanargmax(full_perf))
     avg_oos_perf = oos_perf_accum / max(oos_perf_count, 1)
@@ -116,7 +122,7 @@ def run_cscv(
         ),
         "best_overall_strategy": str(strategies[best_overall_idx]),
         "best_oos_strategy": str(strategies[best_oos_idx]),
-        "periods_per_year": PERIODS_PER_YEAR,
+        "periods_per_year": periods_per_year,
     }
     return {
         "splits": splits,

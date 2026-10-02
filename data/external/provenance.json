@@ -1,0 +1,222 @@
+{
+  "cost_bps_per_unit_turnover": 1.0,
+  "periods_per_year": 252,
+  "qrs_commit": "fcc4f4e6fdc5662693673fea6994602a9cd5ebbb",
+  "vpin_commit": "92152d2ab6351667d010e31f9b0a042681d4877f",
+  "notes": [
+    "Declared small sensitivity grid, not the complete historical search universe.",
+    "QRS uses only ma_compare: the upstream price_compare/ma_cross branches map same-day daily closes to intraday bars.",
+    "VPIN roll returns are unavailable; these dates are dropped for every candidate, never treated as measured zero returns.",
+    "Costs are scenario assumptions, not verified brokerage fees. Strategy-switching costs are not included in dynamic diagnostics."
+  ],
+  "datasets": {
+    "QRS_T": {
+      "input": "data/cache/t_5min.parquet",
+      "rows": 646,
+      "start": "2024-01-30",
+      "end": "2026-09-30",
+      "candidates": [
+        {
+          "strategy": "qrs_N16_M600_S0.3",
+          "N": 16,
+          "M": 600,
+          "S": 0.3,
+          "trend_method": "ma_compare"
+        },
+        {
+          "strategy": "qrs_N16_M600_S0.5",
+          "N": 16,
+          "M": 600,
+          "S": 0.5,
+          "trend_method": "ma_compare"
+        },
+        {
+          "strategy": "qrs_N16_M600_S0.7",
+          "N": 16,
+          "M": 600,
+          "S": 0.7,
+          "trend_method": "ma_compare"
+        },
+        {
+          "strategy": "qrs_N20_M800_S0.3",
+          "N": 20,
+          "M": 800,
+          "S": 0.3,
+          "trend_method": "ma_compare"
+        },
+        {
+          "strategy": "qrs_N20_M800_S0.5",
+          "N": 20,
+          "M": 800,
+          "S": 0.5,
+          "trend_method": "ma_compare"
+        },
+        {
+          "strategy": "qrs_N20_M800_S0.7",
+          "N": 20,
+          "M": 800,
+          "S": 0.7,
+          "trend_method": "ma_compare"
+        }
+      ]
+    },
+    "QRS_TL": {
+      "input": "data/cache/tl_5min.parquet",
+      "rows": 646,
+      "start": "2024-01-30",
+      "end": "2026-09-30",
+      "candidates": [
+        {
+          "strategy": "qrs_N16_M600_S0.3",
+          "N": 16,
+          "M": 600,
+          "S": 0.3,
+          "trend_method": "ma_compare"
+        },
+        {
+          "strategy": "qrs_N16_M600_S0.5",
+          "N": 16,
+          "M": 600,
+          "S": 0.5,
+          "trend_method": "ma_compare"
+        },
+        {
+          "strategy": "qrs_N16_M600_S0.7",
+          "N": 16,
+          "M": 600,
+          "S": 0.7,
+          "trend_method": "ma_compare"
+        },
+        {
+          "strategy": "qrs_N20_M800_S0.3",
+          "N": 20,
+          "M": 800,
+          "S": 0.3,
+          "trend_method": "ma_compare"
+        },
+        {
+          "strategy": "qrs_N20_M800_S0.5",
+          "N": 20,
+          "M": 800,
+          "S": 0.5,
+          "trend_method": "ma_compare"
+        },
+        {
+          "strategy": "qrs_N20_M800_S0.7",
+          "N": 20,
+          "M": 800,
+          "S": 0.7,
+          "trend_method": "ma_compare"
+        }
+      ]
+    },
+    "VPIN_T": {
+      "input": "data/processed/vpin_daily.csv",
+      "rows": 2680,
+      "dropped_unavailable_or_warmup_days": 75,
+      "start": "2015-05-06",
+      "end": "2026-07-27",
+      "candidates": [
+        {
+          "strategy": "vpin_slope3_p0.7",
+          "slope_window": 3,
+          "percentile_threshold": 0.7
+        },
+        {
+          "strategy": "vpin_slope3_p0.8",
+          "slope_window": 3,
+          "percentile_threshold": 0.8
+        },
+        {
+          "strategy": "vpin_slope3_p0.9",
+          "slope_window": 3,
+          "percentile_threshold": 0.9
+        },
+        {
+          "strategy": "vpin_slope5_p0.7",
+          "slope_window": 5,
+          "percentile_threshold": 0.7
+        },
+        {
+          "strategy": "vpin_slope5_p0.8",
+          "slope_window": 5,
+          "percentile_threshold": 0.8
+        },
+        {
+          "strategy": "vpin_slope5_p0.9",
+          "slope_window": 5,
+          "percentile_threshold": 0.9
+        },
+        {
+          "strategy": "vpin_slope10_p0.7",
+          "slope_window": 10,
+          "percentile_threshold": 0.7
+        },
+        {
+          "strategy": "vpin_slope10_p0.8",
+          "slope_window": 10,
+          "percentile_threshold": 0.8
+        },
+        {
+          "strategy": "vpin_slope10_p0.9",
+          "slope_window": 10,
+          "percentile_threshold": 0.9
+        }
+      ]
+    },
+    "VPIN_TL": {
+      "input": "data/processed/vpin_daily.csv",
+      "rows": 748,
+      "dropped_unavailable_or_warmup_days": 43,
+      "start": "2023-06-07",
+      "end": "2026-07-27",
+      "candidates": [
+        {
+          "strategy": "vpin_slope3_p0.7",
+          "slope_window": 3,
+          "percentile_threshold": 0.7
+        },
+        {
+          "strategy": "vpin_slope3_p0.8",
+          "slope_window": 3,
+          "percentile_threshold": 0.8
+        },
+        {
+          "strategy": "vpin_slope3_p0.9",
+          "slope_window": 3,
+          "percentile_threshold": 0.9
+        },
+        {
+          "strategy": "vpin_slope5_p0.7",
+          "slope_window": 5,
+          "percentile_threshold": 0.7
+        },
+        {
+          "strategy": "vpin_slope5_p0.8",
+          "slope_window": 5,
+          "percentile_threshold": 0.8
+        },
+        {
+          "strategy": "vpin_slope5_p0.9",
+          "slope_window": 5,
+          "percentile_threshold": 0.9
+        },
+        {
+          "strategy": "vpin_slope10_p0.7",
+          "slope_window": 10,
+          "percentile_threshold": 0.7
+        },
+        {
+          "strategy": "vpin_slope10_p0.8",
+          "slope_window": 10,
+          "percentile_threshold": 0.8
+        },
+        {
+          "strategy": "vpin_slope10_p0.9",
+          "slope_window": 10,
+          "percentile_threshold": 0.9
+        }
+      ]
+    }
+  }
+}

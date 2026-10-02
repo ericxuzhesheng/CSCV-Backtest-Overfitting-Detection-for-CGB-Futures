@@ -102,7 +102,7 @@ def evaluate_metric(
     raise ValueError(f"Unsupported metric: {metric}")
 
 
-def metric_from_stats(sum_returns: np.ndarray, sum_squares: np.ndarray, count: int, metric: str) -> np.ndarray:
+def metric_from_stats(sum_returns: np.ndarray, sum_squares: np.ndarray, count: int, metric: str, periods_per_year: int = PERIODS_PER_YEAR) -> np.ndarray:
     if count <= 1:
         return np.full_like(sum_returns, np.nan, dtype=float)
     mean = sum_returns / count
@@ -115,9 +115,9 @@ def metric_from_stats(sum_returns: np.ndarray, sum_squares: np.ndarray, count: i
             vol,
             out=np.full_like(mean, np.nan, dtype=float),
             where=vol > 0,
-        ) * np.sqrt(PERIODS_PER_YEAR)
+        ) * np.sqrt(periods_per_year)
     elif metric == "mean_return":
-        out = mean * PERIODS_PER_YEAR
+        out = mean * periods_per_year
     else:
         raise ValueError(f"Unsupported CSCV performance metric: {metric}")
     return out

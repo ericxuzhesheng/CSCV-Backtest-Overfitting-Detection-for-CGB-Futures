@@ -1,5 +1,29 @@
 # 国债期货 CSCV 回测过拟合检验框架 | CSCV Backtest Overfitting Detection for CGB Futures
 
+## 2026-10-02：QRS / VPIN 外部候选集补充
+
+新增 [完整诊断](results/external_audit/report.md)、[输入与来源](data/external/provenance.json)及可重跑的日频收益矩阵。以下为新候选集；正文原有 9,123 组双均线结果保留其历史口径。
+
+| 候选集 | 配置数 | 有效收益截止日 | PBO | 动态失效频率 | 平均窗口 OOS Sharpe |
+|---|---:|---|---:|---:|---:|
+| QRS T | 6 | 2026-09-30 | 5.71% | 42.31% | -1.332 |
+| QRS TL | 6 | 2026-09-30 | 72.86% | 46.15% | -0.011 |
+| VPIN T | 9 | 2026-07-27 | 1.43% | 40.63% | 0.668 |
+| VPIN TL | 9 | 2026-07-27 | 2.86% | 41.94% | 0.829 |
+
+CSCV 使用 8 区块 / 70 组合；动态检验使用 120 个有效观察训练、20 个观察检验、步长 20，测试窗口不重叠，年化频率为 252。统一扣除每单位换手 1 bp 的情景成本。低 PBO 不等于盈利：QRS T 的平均窗口 OOS Sharpe 仍为负。上述小网格不代表完整历史参数搜索，也未另扣动态切换策略的成本。
+
+QRS 仅纳入因果 `ma_compare` 分支；另两种趋势分支将当日收盘映射到盘中，故未纳入。VPIN 使用源仓库已发布的日频快照，剔除预热与缺失换月收益，实际有效收益到 7 月 27 日，不能把仓库更新时间当成行情截止日。
+
+```bash
+# 从已保存矩阵重跑，不需要源仓库
+python scripts/run_external_audit.py
+# 从相邻的源仓库重新构建矩阵；具体版本见 provenance.json
+python scripts/build_external_matrices.py --qrs-repo ../QRS-Based-Timing-Strategy-for-Chinese-Government-Bond-Futures --vpin-repo ../VPIN-Based-Timing-Strategy-for-Chinese-Government-Bond-Futures
+```
+
+English: the supplement audits declared QRS/VPIN candidate subsets, with strict missing-data checks, daily annualization, and non-overlapping walk-forward windows. PBO is a selection diagnostic, not a loss probability. See the linked report for source versions and actual coverage.
+
 <p align="center">
   <a href="#zh"><img src="https://img.shields.io/badge/LANGUAGE-%E4%B8%AD%E6%96%87-E84D3D?style=for-the-badge&labelColor=3B3F47" alt="LANGUAGE 中文"></a>
   <a href="#en"><img src="https://img.shields.io/badge/LANGUAGE-ENGLISH-2F73C9?style=for-the-badge&labelColor=3B3F47" alt="LANGUAGE ENGLISH"></a>
